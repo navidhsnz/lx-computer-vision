@@ -38,14 +38,14 @@ class LaneServoingNode(DTROS):
         # get the name of the robot
         self.veh = rospy.get_namespace().strip("/")
 
-        self.v_0 = 0.3  # Forward velocity command
+        self.v_0 = 0.11  # Forward velocity command
 
         # The following are used for scaling
         self.steer_max = -1
 
         w, h = 640, 480
 
-        # TODO: you can play with these values to modify the horizontal field-of-view of the agent
+        # you can play with these values to modify the horizontal field-of-view of the agent
         left = 0.1
         right = 0.1
         self._roi = (int(left * w), int(right * w))
@@ -53,7 +53,7 @@ class LaneServoingNode(DTROS):
         self.VLS_ACTION = None
         self.VLS_STOPPED = True
 
-        # Defining subscribers:
+       # Defining subscribers:
         rospy.Subscriber(
             f"/{self.veh}/rectifier_node/image/compressed",
             CompressedImage,
@@ -137,6 +137,7 @@ class LaneServoingNode(DTROS):
             image_msg (:obj:`sensor_msgs.msg.CompressedImage`): The received image message
 
         """
+
         image = compressed_imgmsg_to_rgb(image_msg)
         # Resize the image to the desired dimensionsS
         height_original, width_original = image.shape[0:2]
@@ -177,8 +178,7 @@ class LaneServoingNode(DTROS):
         if self.VLS_ACTION == "calibration":
             self.steer_max = max(
                 self.steer_max,
-                2
-                * max(
+                2 * max(
                     float(np.sum(lt_mask * steer_matrix_left_lm)),
                     float(np.sum(rt_mask * steer_matrix_right_lm)),
                 ),
@@ -191,12 +191,15 @@ class LaneServoingNode(DTROS):
             self.logerr("Not Calibrated!")
             return
 
-        steer = float(np.sum(lt_mask * steer_matrix_left_lm)) + float(np.sum(rt_mask * steer_matrix_right_lm))
+        steer = float(np.sum(rt_mask * steer_matrix_right_lm)) + float(np.sum(lt_mask * steer_matrix_left_lm))
+        steer = steer * 0.55  # I added a coefficient for steer to control the intensity
+
 
         # now rescale from 0 to 1
         steer_scaled = np.sign(steer) * rescale(min(np.abs(steer), self.steer_max), 0, self.steer_max)
-
+        
         u = [self.v_0, steer_scaled * self.omega_max]
+
         self.publish_command(u)
 
         # self.logging to screen for debugging purposes

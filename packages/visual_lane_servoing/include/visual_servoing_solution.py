@@ -17,7 +17,10 @@ def get_steer_matrix_left_lane_markings(shape: Tuple[int, int]) -> np.ndarray:
     """
 
     # TODO: implement your own solution here
-    steer_matrix_left = np.ones(shape, dtype=np.uint8)
+    steer_matrix_left = - np.ones(shape, dtype=np.uint8)
+    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions
+    steer_matrix_left[:top_part, :] = 0
+
     return steer_matrix_left
 
 
@@ -32,7 +35,10 @@ def get_steer_matrix_right_lane_markings(shape: Tuple[int, int]) -> np.ndarray:
     """
 
     # TODO: implement your own solution here
-    steer_matrix_right = -np.ones(shape, dtype=np.uint8)
+    steer_matrix_right = np.ones(shape, dtype=np.uint8) * 0.82 # I added weights and optimized it to balance the left and right matrices.
+    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions
+    steer_matrix_right[:top_part, :] = 0
+
     # ---
     return steer_matrix_right
 
@@ -60,7 +66,7 @@ def detect_lane_markings(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     sobelx = cv2.Sobel(img,cv2.CV_64F,1,0)
     sobely = cv2.Sobel(img,cv2.CV_64F,0,1)
 
-    sigma = 4.5
+    sigma = 4.4
 
     # Smooth the image using a Gaussian kernel
     img_gaussian_filter = cv2.GaussianBlur(img,(0,0), sigma)
@@ -74,7 +80,7 @@ def detect_lane_markings(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     # Compute the orientation of the gradients
     Gdir = cv2.phase(np.array(sobelx, np.float32), np.array(sobely, dtype=np.float32), angleInDegrees=True)
 
-    threshold = 45
+    threshold = 48
 
     mask_mag = (Gmag > threshold)
 
@@ -84,10 +90,10 @@ def detect_lane_markings(image: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 
-    white_lower_hsv = np.array([0, 0, 153])         # CHANGE ME
-    white_upper_hsv = np.array([179, 60, 255])   # CHANGE ME
-    yellow_lower_hsv = np.array([15, 100, 100])        # CHANGE ME
-    yellow_upper_hsv = np.array([30, 255, 255])  # CHANGE ME
+    white_lower_hsv = np.array([0, 0, 205])         # CHANGE ME
+    white_upper_hsv = np.array([228, 69, 255])   # CHANGE ME
+    yellow_lower_hsv = np.array([15, 30, 100])        # CHANGE ME
+    yellow_upper_hsv = np.array([35, 254, 255])  # CHANGE ME
 
     mask_white = cv2.inRange(image_hsv, white_lower_hsv, white_upper_hsv)
     mask_yellow = cv2.inRange(image_hsv, yellow_lower_hsv, yellow_upper_hsv)
