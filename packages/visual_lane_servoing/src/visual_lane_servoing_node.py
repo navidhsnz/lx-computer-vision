@@ -192,7 +192,7 @@ class LaneServoingNode(DTROS):
             return
 
         steer = float(np.sum(rt_mask * steer_matrix_right_lm)) + float(np.sum(lt_mask * steer_matrix_left_lm))
-        steer = steer * 0.55  # I added a coefficient for steer to control the intensity
+        steer = steer * 0.55  # I added a coefficient for steer to control the intensity. I chose this parameter thorugh trial and error.
 
 
         # now rescale from 0 to 1

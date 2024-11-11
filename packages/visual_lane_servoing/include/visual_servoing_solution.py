@@ -17,8 +17,8 @@ def get_steer_matrix_left_lane_markings(shape: Tuple[int, int]) -> np.ndarray:
     """
 
     # TODO: implement your own solution here
-    steer_matrix_left = - np.ones(shape, dtype=np.uint8)
-    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions
+    steer_matrix_left = - np.ones(shape, dtype=np.uint8) # I define a matrix of ones. and assign the negative sign to them
+    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions (anything above an approximate fixed horizon)
     steer_matrix_left[:top_part, :] = 0
 
     return steer_matrix_left
@@ -35,12 +35,26 @@ def get_steer_matrix_right_lane_markings(shape: Tuple[int, int]) -> np.ndarray:
     """
 
     # TODO: implement your own solution here
-    steer_matrix_right = np.ones(shape, dtype=np.uint8) * 0.82 # I added weights and optimized it to balance the left and right matrices.
-    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions
+    steer_matrix_right = np.ones(shape, dtype=np.uint8) * 0.82 # I added weights to this matrix of ones. I optimized it to balance the left and right matrices.
+    top_part = int(shape[0] * 0.34) # the top 34% of the matrix is zero to remove distractions (anything above an approximate fixed horizon)
     steer_matrix_right[:top_part, :] = 0
 
     # ---
     return steer_matrix_right
+
+    #
+    #  Note: To find these parameters I added a temporary subsriber function
+    #  into the code of "src/visual_lane_servoing_node.py" to receive the
+    # parameters from the user through a ros topic that I defined. This way, I was able
+    #  to easily modify parameters like the coefficient of the ones matrix 
+    #  in "get_steer_matrix_right_lane_markings()" or the coefficient of steer 
+    #  in "src/visual_lane_servoing_node.py". by doing this, I didn't have to rebuild
+    #  the code in the robot again for every combination of parameter. I just needed to send 
+    # a message thought a publisher to this subscriber of the robot to modify the parameters and 
+    # find the optimal combination to do the loop. I did this part in collaboration with Amir 
+    # Hossein Zandi in our class. I then removed the ros publisher and receiver after i found the
+    #  good parameters.
+    #
 
 def rgb2gray(rgb):
 
